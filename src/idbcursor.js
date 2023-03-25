@@ -1,59 +1,84 @@
+import IDBObjectStore from "./idbobjectstore.js";
+
 class IDBCursor {
-    constructor(txn, storeName, range, direction) {
+    #currentEntry;
+    #direction;
+    #lmdbDB;
+    #range;
+    #request;
+    #source;
+    #store;
+    constructor(txn, source, request,range, direction) {
         this.txn = txn;
-        this.storeName = storeName;
-        this.range = range;
-        this.direction = direction;
-        this.cursor = new lmdb.Cursor(txn, storeName);
+        this.#request = request;
+        this.#source = source;
+        this.#range = range;
+        this.#direction = direction;
+        this.#store = source instanceof IDBObjectStore ? source : source.objectStore;
+        this.advance(1);
+    }
+
+    get currentEntry() {
+        return this.#currentEntry
+    }
+
+    get direction() {
+        return this.#direction;
+    }
+
+    get range() {
+        return this.#range;
+    }
+
+    get request() {
+        return this.#request;
+    }
+
+    get source() {
+        return this.#source;
     }
 
     advance(count) {
-        for (let i = 0; i < count; i++) {
-            if (!this.cursor.goToNext()) {
-                return;
-            }
+        if(count>0) {
+            let next;
+            do {
+                this.#currentEntry = undefined;
+                next = this.#range.next();
+                if(--count===0) {
+                    this.#currentEntry = next.value
+                    return;
+                }
+            } while(!next.done);
         }
     }
 
     continue(key) {
+        let next;
         if (key) {
-            if (!this.cursor.goToKey(key)) {
-                return;
-            }
+            do {
+                this.#currentEntry = undefined;
+                next = this.#range.next();
+                if(next.value && next.value.key === key) {
+                    this.#currentEntry = next.value;
+                    return;
+                }
+            } while(!next.done)
         } else {
-            if (!this.cursor.goToNext()) {
-                return;
-            }
+            next = this.#range.next()
+            this.#currentEntry = next.value;
         }
     }
 
     continuePrimaryKey(key, primaryKey) {
-        if (!this.cursor.goToRange(primaryKey)) {
-            return;
-        }
-        if (this.cursor.getCurrentString() !== primaryKey) {
-            return;
-        }
+        throw new Error("Not implemented");
     }
 
     delete() {
-        this.cursor.del();
-    }
-
-    getKey() {
-        return this.cursor.getCurrentBinary();
-    }
-
-    getPrimaryKey() {
-        return this.cursor.getCurrentBinary();
-    }
-
-    getValue() {
-        return this.cursor.getCurrentBinary();
+        return this.#store.delete(this.#currentEntry.key).withEventListener("success", () => this.#currentEntry = null);
     }
 
     update(value) {
-        this.cursor.putCurrent(value);
+        return this.#store.put(this.#currentEntry.key,value).withEventListener("success", () => this.#currentEntry = null);
     }
 }
 

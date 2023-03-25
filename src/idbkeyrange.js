@@ -1,9 +1,13 @@
 class IDBKeyRange {
+    #lower;
+    #upper;
+    #lowerOpen;
+    #upperOpen;
     constructor(lower, upper, lowerOpen, upperOpen) {
-        this.lower = lower;
-        this.upper = upper;
-        this.lowerOpen = lowerOpen;
-        this.upperOpen = upperOpen;
+        this.#lower = lower;
+        this.#upper = upper;
+        this.#lowerOpen = lowerOpen;
+        this.#upperOpen = upperOpen;
     }
 
     static bound(lower, upper, lowerOpen, upperOpen) {
@@ -23,31 +27,47 @@ class IDBKeyRange {
     }
 
     includes(key) {
-        if (this.lower !== undefined) {
+        if (this.#lower !== undefined) {
             if (this.lowerOpen) {
-                if (key <= this.lower) {
+                if (key <= this.#lower) {
                     return false;
                 }
             } else {
-                if (key < this.lower) {
+                if (key < this.#lower) {
                     return false;
                 }
             }
         }
 
-        if (this.upper !== undefined) {
-            if (this.upperOpen) {
-                if (key >= this.upper) {
+        if (this.#upper !== undefined) {
+            if (this.#upperOpen) {
+                if (key >= this.#upper) {
                     return false;
                 }
             } else {
-                if (key > this.upper) {
+                if (key > this.#upper) {
                     return false;
                 }
             }
         }
 
         return true;
+    }
+
+    get lower() {
+        return this.#lower;
+    }
+
+    get upper() {
+        return this.#upper;
+    }
+
+    get lowerOpen() {
+        return this.#lowerOpen;
+    }
+
+    get upperOpen() {
+        return this.#upperOpen;
     }
 }
 

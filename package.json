@@ -1,6 +1,6 @@
 {
   "name": "real-indexeddb",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "IndexedDB for Node.js backed by LMDB (vs fakeIndexedDB which it in RAM only and just for testing)",
   "type": "module",
   "main": "index.js",

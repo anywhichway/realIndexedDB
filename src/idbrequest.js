@@ -27,6 +27,11 @@ class IDBRequest extends EventTarget {
     get transaction() {
         return this._transaction;
     }
+
+    withEventListener(type,listener,options) {
+        super.addEventListener(type, listener, options);
+        return this;
+    }
 }
 
 export {IDBRequest as default}
